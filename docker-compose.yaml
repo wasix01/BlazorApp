@@ -1,0 +1,64 @@
+version: "3.7"
+
+volumes:
+  pgdata:
+      driver: local
+  pgadmin4:
+      driver: local
+
+networks:
+  pgnetwork:
+      driver: bridge
+
+
+services:
+  postgres:
+    hostname: postgres
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    container_name: DockerPostgresql
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1qa2ws
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - "pgdata:/pgdata"
+    networks:
+      - pgnetwork
+
+
+#      - "/var/run/postgres.sock:/var/run/postgres/postgres.sock"
+#      - "pgdata:/var/lib/postgresql/data"
+
+
+  pgadmin4:
+    hostname: pgadmin4
+    image: dpage/pgadmin4:latest
+    container_name: DockerPgadmin4
+    ports:
+      - "5050:5050"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=mw@wasix.biz
+      - PGADMIN_DEFAULT_PASSWORD=1qa2ws
+      - PGADMIN_LISTEN_PORT=5050
+    volumes:
+        - "pgadmin4:/var/lib/pgadmin"
+    networks:
+        - pgnetwork
+    depends_on:
+          - postgres
+
+
+  blazor_app:
+    build: .
+    hostname: blazorapp
+    image: wasix/webassembly-in-docker:latest
+    container_name: DockerBlazorApp
+    ports:
+      - "8080:80"
+    networks:
+        - pgnetwork
+    depends_on:
+          - postgres
